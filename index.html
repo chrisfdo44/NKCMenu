@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nellai  Karupatti Coffee - Sharjah- Menu</title>
+    <title>The Oakwood Bistro - Menu</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -46,7 +46,7 @@
             background-size: 12px;
             max-width: 100%;
         }
-	/* Style for the search input */
+        /* Style for the search input */
         #search-input {
             padding: 8px 12px;
             border-radius: 6px;
@@ -57,7 +57,7 @@
             /* Tailwind classes for focus */
             outline: none;
             box-shadow: 0 0 0 1px #8d6e63;
-        }	
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -104,7 +104,7 @@
 
     </div>
 
-    <!-- JavaScript for Menu Logic -->
+    <!-- JavaScript for Menu Logic - UPDATED TO HANDLE "AVAILABILITY" -->
     <script>
         // --- LIVE MENU DATA LOADER ---
         
@@ -116,28 +116,23 @@
         
         // Fallback data structure for development/testing if the API fails
         const FALLBACK_MENU_DATA = [
-            // BREAKFAST (3 items for demo)
-            { "Food Item": "Idly (2pcs)", "Category": "Breakfast", "Price": 4.00, "Todays Special": "No" },
-            { "Food Item": "Dosa", "Category": "Breakfast", "Price": 4.50, "Todays Special": "No" },
-            { "Food Item": "Poori", "Category": "Breakfast", "Price": 7.00, "Todays Special": "Yes" },
+            // Note: Unavailable items (Poori, Mint Rice, Kachori) will now be completely hidden from the menu.
+            { "Food Item": "Idly (2pcs)", "Category": "Breakfast", "Price": 4.00, "Todays Special": "No", "Availability": "Yes" },
+            { "Food Item": "Dosa", "Category": "Breakfast", "Price": 4.50, "Todays Special": "No", "Availability": "Yes" },
+            { "Food Item": "Poori (Unavailable)", "Category": "Breakfast", "Price": 7.00, "Todays Special": "Yes", "Availability": "No" }, // This item will be hidden now
             // LUNCH (3 items for demo)
-            { "Food Item": "Meals", "Category": "Lunch", "Price": 10.00, "Todays Special": "Yes" },
-            { "Food Item": "Tomato Rice", "Category": "Lunch", "Price": 6.00, "Todays Special": "No" },
-            { "Food Item": "Mint Rice", "Category": "Lunch", "Price": 6.00, "Todays Special": "No" },
+            { "Food Item": "Meals", "Category": "Lunch", "Price": 10.00, "Todays Special": "Yes", "Availability": "Yes" },
+            { "Food Item": "Tomato Rice", "Category": "Lunch", "Price": 6.00, "Todays Special": "No", "Availability": "Yes" },
+            { "Food Item": "Mint Rice (Unavailable)", "Category": "Lunch", "Price": 6.00, "Todays Special": "No", "Availability": "No" }, // This item will be hidden now
             // CHAAT/SNACKS (3 items for demo)
-            { "Food Item": "Pani Puri", "Category": "Chaat", "Price": 5.00, "Todays Special": "No" },
-            { "Food Item": "Vada Pav", "Category": "Chaat", "Price": 3.00, "Todays Special": "Yes" },
-            { "Food Item": "Kachori", "Category": "Chaat", "Price": 2.00, "Todays Special": "No" },
+            { "Food Item": "Pani Puri", "Category": "Chaat", "Price": 5.00, "Todays Special": "No", "Availability": "Yes" },
+            { "Food Item": "Vada Pav", "Category": "Chaat", "Price": 3.00, "Todays Special": "Yes", "Availability": "Yes" },
+            { "Food Item": "Kachori (Unavailable)", "Category": "Chaat", "Price": 2.00, "Todays Special": "No", "Availability": "No" }, // This item will be hidden now
             // DINNER (3 items for demo)
-            { "Food Item": "Chapatti", "Category": "Dinner", "Price": 6.00, "Todays Special": "No" },
-            { "Food Item": "Family Dosa", "Category": "Dinner", "Price": 20.00, "Todays Special": "Yes" },
-            { "Food Item": "Rava Dosa", "Category": "Dinner", "Price": 8.00, "Todays Special": "No" },
-            // SWEETS (2 items for demo)
-            { "Food Item": "Gulab Jamun", "Category": "Sweets", "Price": 5.50, "Todays Special": "No" },
-            { "Food Item": "Rasgulla", "Category": "Sweets", "Price": 6.00, "Todays Special": "No" },
-            // DRINKS (2 items for demo)
-            { "Food Item": "Fresh Milk Tea", "Category": "Drinks", "Price": 2.00, "Todays Special": "No" },
-            { "Food Item": "Fresh Milk Coffee", "Category": "Drinks", "Price": 3.00, "Todays Special": "No" },
+            { "Food Item": "Chapatti", "Category": "Dinner", "Price": 6.00, "Todays Special": "No", "Availability": "Yes" },
+            { "Food Item": "Family Dosa", "Category": "Dinner", "Price": 20.00, "Todays Special": "Yes", "Availability": "Yes" },
+            { "Food Item": "Rasgulla", "Category": "Sweets", "Price": 6.00, "Todays Special": "No", "Availability": "Yes" },
+            { "Food Item": "Masala Tea", "Category": "Drinks", "Price": 3.00, "Todays Special": "No", "Availability": "Yes" },
         ];
         // ------------------------------------
         
@@ -154,7 +149,6 @@
             return `AED ${numericPrice.toFixed(2)}`; 
         }
 
-        // NEW FUNCTION: Sets up the search input and event listener
         function setupSearchInput() {
             const filterControls = document.getElementById('filter-controls');
             
@@ -170,21 +164,21 @@
             // Add Event Listener for real-time filtering
             searchInputHtml.addEventListener('input', (event) => {
                 currentSearchQuery = event.target.value.toLowerCase().trim();
-                // Re-render the menu using all current filters (category + search)
                 applyFiltersAndRenderMenu();
             });
         }
         
-        // UPDATED FUNCTION: Sets up the filter dropdown and event listener
         function setupCategoryFilter(menuData) {
             const filterControls = document.getElementById('filter-controls');
-            // Remove previous dropdown if exists to ensure only one is present
             const existingSelect = document.getElementById('category-filter');
             if (existingSelect) existingSelect.remove();
 
-            // 1. Extract all unique categories
+            // 1. Extract all unique categories from available items only
+            // Only items marked as 'Yes' in Availability are considered for category filters
+            const availableItems = menuData.filter(item => String(item.Availability).trim().toLowerCase() === 'yes');
+            
             const allCategories = new Set(
-                menuData
+                availableItems
                     .map(item => item.Category)
                     .filter(cat => cat && cat.trim() !== '')
             );
@@ -193,7 +187,6 @@
             // 2. Build the Select element
             const selectHtml = document.createElement('select');
             selectHtml.id = 'category-filter';
-            // Added sm:w-48 to constrain width on larger screens for better spacing
             selectHtml.className = 'w-full sm:w-48 block text-base sm:text-lg'; 
 
             sortedCategories.forEach(category => {
@@ -214,21 +207,27 @@
             // 3. Add Event Listener to re-render the menu on change
             selectHtml.addEventListener('change', (event) => {
                 currentFilterCategory = event.target.value;
-                // Re-render the main menu using all current filters (category + search)
                 applyFiltersAndRenderMenu();
             });
         }
         
-        // NEW FUNCTION: Combines category and search filters before rendering
+        // --- CORE LOGIC CHANGE IS HERE ---
         function applyFiltersAndRenderMenu() {
             let filteredData = currentMenuData;
             
-            // 1. Apply Category Filter
+            // 1. Strict Availability Filter: ONLY show if Availability is 'Yes'.
+            // This ensures no unavailable items (even specials) are included in the menu.
+            filteredData = filteredData.filter(item => {
+                const isAvailable = String(item.Availability).trim().toLowerCase() === 'yes';
+                return isAvailable;
+            });
+            
+            // 2. Apply Category Filter
             if (currentFilterCategory !== 'All Categories') {
                 filteredData = filteredData.filter(item => item.Category === currentFilterCategory);
             }
             
-            // 2. Apply Search Filter
+            // 3. Apply Search Filter
             if (currentSearchQuery) {
                 filteredData = filteredData.filter(item =>
                     (item["Food Item"] && item["Food Item"].toLowerCase().includes(currentSearchQuery)) ||
@@ -236,44 +235,46 @@
                 );
             }
             
-            // 3. Render the result
+            // 4. Render the result
             renderMenuContent(filteredData, currentFilterCategory);
         }
+        // ------------------------------------
 
-        // RENAMED FUNCTION: Now specifically renders the content based on filtered data
         function renderMenuContent(menuDataToRender, filterCategory = 'All Categories') {
             const specialsContainer = document.getElementById('specials-container');
             const menuContainer = document.getElementById('menu-container');
 
-            // --- 1. Filter and Render Today's Specials (always displayed) ---
-            const specials = menuDataToRender.filter(item => item["Todays Special"] && String(item["Todays Special"]).trim().toLowerCase() === 'yes');
+            // --- 1. Filter and Render Today's Specials (Must be available) ---
+            // menuDataToRender is already filtered for Availability: 'Yes'
+            const specials = menuDataToRender.filter(item => String(item["Todays Special"]).trim().toLowerCase() === 'yes');
 
             let specialsHtml = '';
             if (specials.length > 0) {
-                // Using sm:grid-cols-2 for better mobile/desktop spread
                 specialsHtml += '<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">';
                 specials.forEach(item => {
-                    // Note: Specials are only filtered by search, not category, to keep them visible when possible
+                    // Availability check/strikethrough is removed since only available items reach here
                     specialsHtml += `
                         <div class="p-3 rounded-lg bg-amber-700/50 text-amber-50 shadow-md">
                             <p class="text-sm font-bold">${item["Food Item"]}</p>
                             <p class="text-xs opacity-90">${item["Category"]}</p>
                             <p class="text-base font-extrabold mt-1 text-white">${formatPrice(item.Price)}</p>
+                            <span class="text-xs font-bold text-green-200">AVAILABLE</span>
                         </div>
                     `;
                 });
                 specialsHtml += '</div>';
             } else {
-                specialsHtml = '<p class="text-center py-3 opacity-70 text-base">No specials selected today. Check back soon!</p>';
+                specialsHtml = '<p class="text-center py-3 opacity-70 text-base">No specials selected today.</p>';
             }
-            // Preserve the main H2 title and inject the list of specials
             specialsContainer.innerHTML = specialsContainer.innerHTML.split('</h2>')[0] + '</h2>' + specialsHtml;
 
             
             // --- 2. Group Remaining Items by Category and Render Main Menu ---
 
-            // Filter out specials for the main menu list
-            const mainMenuItems = menuDataToRender.filter(item => !item["Todays Special"] || String(item["Todays Special"]).trim().toLowerCase() !== 'yes');
+            // Filter items that are available (implicitly true) AND not marked as a special
+            const mainMenuItems = menuDataToRender.filter(item => 
+                String(item["Todays Special"]).trim().toLowerCase() !== 'yes'
+            );
 
             // Group the remaining items by Category
             const menuByCategory = mainMenuItems.reduce((acc, item) => {
@@ -285,7 +286,6 @@
                 return acc;
             }, {});
 
-            // Determine which categories to render based on the filter (only impacts the main menu structure)
             const allCategories = Object.keys(menuByCategory).sort();
             const categoriesToRender = filterCategory === 'All Categories' 
                 ? allCategories 
@@ -339,11 +339,9 @@
         async function fetchAndRenderMenu() {
             let menuDataToUse = FALLBACK_MENU_DATA;
             
-            // Exponential backoff parameters
             const MAX_RETRIES = 3;
             const INITIAL_DELAY_MS = 1000;
 
-            // Check if the URL has been updated from the placeholder
             const usingPlaceholder = SHEET_JSON_URL.includes("YOUR_PUBLIC_GOOGLE_SHEET_JSON_API_LINK_GOES_HERE");
             
             if (usingPlaceholder) {
@@ -365,6 +363,8 @@
                                 "Category": item["Category"] || "Other",
                                 "Price": parseFloat(item["Price"]) || 0,
                                 "Todays Special": item["Todays Special"] || "",
+                                // Ensure the new column is handled
+                                "Availability": item["Availability"] || "No", 
                             }));
                             console.log("Successfully fetched live menu data.");
                             break; 
@@ -385,24 +385,18 @@
                 }
             }
             
-            // Store the fetched data globally
             currentMenuData = menuDataToUse;
             
             // Setup the filters and search based on the fetched data
-            setupSearchInput(); // Setup the search bar first
-            setupCategoryFilter(currentMenuData); // Setup the filter dropdown
+            setupSearchInput(); 
+            setupCategoryFilter(currentMenuData); 
             
             // Initial render
             applyFiltersAndRenderMenu();
         }
 
-
-        // Run the data fetching and rendering function when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-            // Initial fetch on page load
             fetchAndRenderMenu();
-
-            // Set up interval to fetch data and update the menu every minute
             setInterval(fetchAndRenderMenu, UPDATE_INTERVAL_MS);
             console.log(`Live menu updates enabled, fetching data every ${UPDATE_INTERVAL_MS / 1000} seconds.`);
         });
